@@ -61,7 +61,7 @@ Visit the [AVAX Faucet](https://core.app/tools/testnet-faucet/?subnet=c&token=c)
 To test the contract, use [Remix IDE](https://remix.ethereum.org/):
 
 1. Copy the Solidity code into a new file.
-2. Select the appropriate compiler version, preferably **0.8.20** or above.
+2. Select the appropriate compiler version, preferably **0.8.23** or above.
 3. Compile the code by navigating to the Solidity Compiler tab in the left sidebar. Ensure that the selected compiler version is correct.
 4. Once compiled, go to the Deploy & Run Transactions tab.
 5. In the 'At Address' section, paste the deployed contract address and click the 'At Address' button to deploy it.
