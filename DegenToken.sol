@@ -1,58 +1,53 @@
- // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.23;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
 
-// This contract implements the ERC20 standard for tokens and includes the Ownable contract from OpenZeppelin for access control.
+import "@openzeppelin/contracts@4.9.0/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts@4.9.0/access/Ownable.sol";
+
 contract DegenToken is ERC20, Ownable {
 
-// The redemption cost for magic is set to 100 tokens per unit of magic.
-uint256 public constant REDEMPTION_COST = 100;
+    enum PotionType { None, Acceleration, Healing, Intelligence }
 
-// This mapping keeps track of the amount of magic owned by each user.
-mapping(address => uint256) public magicOwned;
+    struct Potion {
+        string name;
+        uint256 cost;
+        uint256 quantity;
+    }
 
-// The constructor initializes the contract with an initial supply of tokens for the contract creator.
-constructor() 
-    ERC20("Degen", "DGN") Ownable(msg.sender) {
-    _mint(msg.sender, 10 * (10 ** uint256(decimals())));
-}
+    mapping(address => uint256) public inventory;
+    Potion[] public potions;
 
-// This function allows users to redeem their DegenTokens for a "powerful magic" at a cost of 100 tokens per unit of magic.
-// The function burns the tokens and updates the user's magic balance in the `magicOwned` mapping.
-function redeemMagic(uint256 quantity) public {
-    uint256 cost = REDEMPTION_COST * quantity;
-    require(balanceOf(msg.sender) >= cost, "Your token is not enough tokens to redeem for a powerful magic");
+    constructor() ERC20("Degen", "DGN") {
+        potions.push(Potion("Acceleration Potion", 100, 100));
+        potions.push(Potion("Healing Potion", 30, 100));
+        potions.push(Potion("Intelligence Potion", 300, 100));
+    }
 
-    magicOwned[msg.sender] += quantity;
-    _burn(msg.sender, cost);
-}
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
 
-// This function returns the amount of magic owned by the specified user.
-function checkMagicOwned(address user) public view returns (uint256) {
-    return magicOwned[user];
-}
+    function burn(uint256 amount) public {
+        _burn(msg.sender, amount);
+    }
 
-// This function allows the contract owner to mint new tokens and send them to a specified address.
-function mintTokens(address to, uint256 amount) public onlyOwner {
-    _mint(to, amount);
-}
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        _transfer(msg.sender, to, amount);
+        return true;
+    }
 
-// This function returns the balance of tokens owned by the specified address.
-function checkBalance(address account) public view returns (uint256) {
-    return balanceOf(account);
-}
+    function getPotionCount() public view returns (uint256) {
+        return potions.length;
+    }
 
-// This function allows users to burn their tokens, removing them from circulation.
-function burnTokens(uint256 amount) public {
-    require(balanceOf(msg.sender) >= amount, "Your token is not enough tokens to burn");
-    _burn(msg.sender, amount);
-}
+    function buyPotion(uint256 index) public {
+        require(index < potions.length, "Invalid potion index");
+        require(balanceOf(msg.sender) >= potions[index].cost, "Not enough tokens to buy potion");
+        require(potions[index].quantity > 0, "Potion out of stock");
 
-// This function allows users to transfer their tokens to another address.
-function transferTokens(address to, uint256 amount) public {
-    require(to != address(0), "Your address is invalid ");
-    require(balanceOf(msg.sender) >= amount, "Your token is not enough tokens to transfer");
-    _transfer(msg.sender, to, amount);
-}
+        inventory[msg.sender] += 1;
+        potions[index].quantity -= 1;
+        _burn(msg.sender, potions[index].cost);
+    }
+
 }
